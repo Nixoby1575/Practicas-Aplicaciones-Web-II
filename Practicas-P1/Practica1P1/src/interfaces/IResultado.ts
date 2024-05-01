@@ -1,0 +1,8 @@
+export interface IResultado {
+    id: number;
+    idPaciente: number;
+    idTipoExamen: number;
+    resultadoExamen: string;
+    valorPagado: number;
+    observaciones: string;
+}
