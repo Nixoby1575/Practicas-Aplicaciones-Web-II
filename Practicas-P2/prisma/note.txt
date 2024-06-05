@@ -1,0 +1,370 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+  }
+  
+  datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+  }
+  
+  
+  
+  
+  model Paciente {
+    id             Int         @id @default(autoincrement())
+    nombre         String
+    identificacion String
+    estado         String       @default("Activo")
+    Resultados     Resultado[]
+  }
+  
+  model TipoExamen {
+    id           Int         @id @default(autoincrement())
+    descripcion  String
+    indicaciones String
+    estado       String       @default("Activo")
+    Resultados   Resultado[]
+  }
+  
+  model Resultado {
+    id             Int        @id @default(autoincrement())
+    idPaciente     Int
+    idTipoExamen   Int
+    resultado      String
+    valorPagado    Float
+    observaciones  String?
+    estado         String     @default("Activo")
+    Paciente       Paciente   @relation(fields: [idPaciente], references: [id])
+    TipoExamen     TipoExamen @relation(fields: [idTipoExamen], references: [id])
+  }
+
+
+
+
+
+  import { Request, Response } from 'express';
+  import { PrismaClient } from '@prisma/client';
+  
+  const prisma = new PrismaClient();
+  
+  const pacientesController = {
+      getAll: async (req: Request, res: Response) => {
+          try {
+              const pacientes = await prisma.paciente.findMany({
+                  where: { estado: 'Activo' },
+              });
+              res.json(pacientes);
+          } catch (error) {
+              res.status(500).json({ error: 'Error al obtener pacientes' });
+          }
+      },
+      create: async (req: Request, res: Response) => {
+          const { nombre, identificacion } = req.body;
+          try {
+              const nuevoPaciente = await prisma.paciente.create({
+                  data: {
+                      nombre,
+                      identificacion,
+                      estado: 'Activo',
+                  },
+              });
+              res.json(nuevoPaciente);
+          } catch (error) {
+              res.status(500).json({ error: 'Error al crear paciente' });
+          }
+      },
+      update: async (req: Request, res: Response) => {
+          const { id } = req.params;
+          const { nombre, identificacion } = req.body;
+          try {
+              const pacienteActualizado = await prisma.paciente.update({
+                  where: { id: Number(id) },
+                  data: { nombre, identificacion },
+              });
+              res.json(pacienteActualizado);
+          } catch (error) {
+              res.status(500).json({ error: 'Error al actualizar paciente' });
+          }
+      },
+      delete: async (req: Request, res: Response) => {
+          const { id } = req.params;
+          try {
+              const pacienteEliminado = await prisma.paciente.update({
+                  where: { id: Number(id) },
+                  data: { estado: 'Eliminado' },
+              });
+              res.json(pacienteEliminado);
+          } catch (error) {
+              res.status(500).json({ error: 'Error al eliminar paciente' });
+          }
+      },
+      recover: async (req: Request, res: Response) => {
+          const { id } = req.params;
+          try {
+              const pacienteRecuperado = await prisma.paciente.update({
+                  where: { id: Number(id) },
+                  data: { estado: 'Activo' },
+              });
+              res.json(pacienteRecuperado);
+          } catch (error) {
+              res.status(500).json({ error: 'Error al recuperar paciente' });
+          }
+      },
+  };
+  
+  export default pacientesController;
+  
+
+
+
+  import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+const resultadosController = {
+    getAll: async (req: Request, res: Response) => {
+        try {
+            const resultados = await prisma.resultado.findMany({
+                where: { estado: 'Activo' },
+            });
+            res.json(resultados);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al obtener resultados' });
+        }
+    },
+    create: async (req: Request, res: Response) => {
+        const { idPaciente, idTipoExamen, resultado, valorPagado, observaciones } = req.body;
+        try {
+            const nuevoResultado = await prisma.resultado.create({
+                data: {
+                    idPaciente,
+                    idTipoExamen,
+                    resultado,
+                    valorPagado,
+                    observaciones,
+                    estado: 'Activo',
+                },
+            });
+            res.json(nuevoResultado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al crear resultado' });
+        }
+    },
+    update: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { resultado, valorPagado, observaciones } = req.body;
+        try {
+            const resultadoActualizado = await prisma.resultado.update({
+                where: { id: Number(id) },
+                data: { resultado, valorPagado, observaciones },
+            });
+            res.json(resultadoActualizado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al actualizar resultado' });
+        }
+    },
+    delete: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const resultadoEliminado = await prisma.resultado.update({
+                where: { id: Number(id) },
+                data: { estado: 'Eliminado' },
+            });
+            res.json(resultadoEliminado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al eliminar resultado' });
+        }
+    },
+    recover: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const resultadoRecuperado = await prisma.resultado.update({
+                where: { id: Number(id) },
+                data: { estado: 'Activo' },
+            });
+            res.json(resultadoRecuperado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al recuperar resultado' });
+        }
+    },
+};
+
+export default resultadosController;
+
+
+
+
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+const tipoExamenController = {
+    getAll: async (req: Request, res: Response) => {
+        try {
+            const tipoExamenes = await prisma.tipoExamen.findMany({
+                where: { estado: 'Activo' },
+            });
+            res.json(tipoExamenes);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al obtener tipos de examen' });
+        }
+    },
+    create: async (req: Request, res: Response) => {
+        const { descripcion, indicaciones } = req.body;
+        try {
+            const nuevoTipoExamen = await prisma.tipoExamen.create({
+                data: {
+                    descripcion,
+                    indicaciones,
+                    estado: 'Activo',
+                },
+            });
+            res.json(nuevoTipoExamen);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al crear tipo de examen' });
+        }
+    },
+    update: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { descripcion, indicaciones } = req.body;
+        try {
+            const tipoExamenActualizado = await prisma.tipoExamen.update({
+                where: { id: Number(id) },
+                data: { descripcion, indicaciones },
+            });
+            res.json(tipoExamenActualizado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al actualizar tipo de examen' });
+        }
+    },
+    delete: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const tipoExamenEliminado = await prisma.tipoExamen.update({
+                where: { id: Number(id) },
+                data: { estado: 'Eliminado' },
+            });
+            res.json(tipoExamenEliminado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al eliminar tipo de examen' });
+        }
+    },
+    recover: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const tipoExamenRecuperado = await prisma.tipoExamen.update({
+                where: { id: Number(id) },
+                data: { estado: 'Activo' },
+            });
+            res.json(tipoExamenRecuperado);
+        } catch (error) {
+            res.status(500).json({ error: 'Error al recuperar tipo de examen' });
+        }
+    },
+};
+
+export default tipoExamenController;
+
+
+
+
+
+
+
+
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export default prisma;
+
+
+import express from 'express';
+import pacientesController from '../controllers/pacientesController';
+
+const router = express.Router();
+
+router.get('/', pacientesController.getAll);
+router.post('/', pacientesController.create);
+router.put('/:id', pacientesController.update);
+router.delete('/:id', pacientesController.delete);
+router.put('/recover/:id', pacientesController.recover);
+
+export default router;
+
+
+
+
+
+import express from 'express';
+import resultadosController from '../controllers/resultadosController';
+
+const router = express.Router();
+
+router.get('/', resultadosController.getAll);
+router.post('/', resultadosController.create);
+router.put('/:id', resultadosController.update);
+router.delete('/:id', resultadosController.delete);
+router.put('/recover/:id', resultadosController.recover);
+
+export default router;
+
+
+
+
+
+import express from 'express';
+import tipoExamenController from '../controllers/tipoExamenController';
+
+const router = express.Router();
+
+router.get('/', tipoExamenController.getAll);
+router.post('/', tipoExamenController.create);
+router.put('/:id', tipoExamenController.update);
+router.delete('/:id', tipoExamenController.delete);
+router.put('/recover/:id', tipoExamenController.recover);
+
+export default router;
+
+
+
+
+
+
+
+
+
+import express from 'express';
+import bodyParser from 'body-parser';
+import pacientesRoutes from './routes/pacientesRoutes';
+import tipoExamenRoutes from './routes/tipoExamenRoutes';
+import resultadosRoutes from './routes/resultadosRoutes';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/pacientes', pacientesRoutes);
+app.use('/tipoexamen', tipoExamenRoutes);
+app.use('/resultados', resultadosRoutes);
+
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+
+// Inicia el servidor
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
