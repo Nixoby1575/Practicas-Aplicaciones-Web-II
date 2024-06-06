@@ -1,16 +1,13 @@
-import { Request, Response } from 'express';
-import { fetchDataAxios, fetchDataGot } from '../utils/httpClient';
+import axios from 'axios';
 
-const externalDataController = {
-    getData: async (req: Request, res: Response) => {
-        try {
-            const url = 'https://api.companero.com/data'; // URL del servicio REST del compañero
-            const data = await fetchDataAxios(url); // Cambiar a fetchDataGot para probar otra opción
-            res.json(data);
-        } catch (error) {
-            res.status(500).json({ error: 'Error al obtener datos externos' });
-        }
-    },
+const externalDataController = async (endpoint: string) => {
+  try {
+    const response = await axios.get(`http://192.168.100.249:3000/alumnos${endpoint}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener datos del servicio de mi compañero:', error);
+    throw error;
+  }
 };
 
 export default externalDataController;
