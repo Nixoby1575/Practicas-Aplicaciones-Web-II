@@ -4,7 +4,8 @@ import cors from 'cors';
 import pacientesRoutes from './routes/pacientesRoutes';
 import tipoExamenRoutes from './routes/tipoExamenRoutes';
 import resultadosRoutes from './routes/resultadosRoutes';
-import externalDataRoutes from './routes/externalDataRoutes';
+import { equiposRouter } from './routes/equiposRouter';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/pacientes', pacientesRoutes);
 app.use('/tipoexamen', tipoExamenRoutes);
 app.use('/resultados', resultadosRoutes);
-app.use('/external', externalDataRoutes);
+app.use('/equipos', equiposRouter);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(err.stack);
